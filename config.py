@@ -1,15 +1,24 @@
 # config.py
+import os
 
-T_AND_C_VERSION = "1.0"
+from dotenv import load_dotenv
 
-TERMS_AND_CONDITIONS = """
-**Terms & Conditions**
+load_dotenv()
 
-Please read and accept our Terms and Conditions to join this group.
 
-1. Be respectful to all members.
-2. No spamming or advertising.
-3. Follow all group rules.
+# Version of the Terms and Conditions
+T_AND_C_VERSION = os.getenv("T_AND_C_VERSION")
+if not T_AND_C_VERSION:
+    raise ValueError("No T_AND_C_VERSION found in environment variables")
 
-By clicking 'Accept', you agree to our T&C version {version}.
-"""
+# The content of the Terms and Conditions (can be a string or a URL)
+T_AND_C_CONTENT = os.getenv("T_AND_C_CONTENT")
+if not T_AND_C_CONTENT:
+    raise ValueError("No T_AND_C_CONTENT found in environment variables")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DATABASE_NAME = os.getenv("DATABASE_NAME")
+
+BOT_OWNER_ID = os.getenv("BOT_OWNER_ID")
+if not BOT_OWNER_ID:
+    raise ValueError("No BOT_OWNER_ID found in environment variables")

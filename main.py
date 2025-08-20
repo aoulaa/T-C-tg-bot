@@ -6,17 +6,17 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from dotenv import load_dotenv
 
+from config import BOT_TOKEN
 from db.database import init_db
-from handlers import user_join
+from handlers import user_join, admin
 
-load_dotenv()
-
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=os.getenv("BOT_TOKEN"))
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-dp.include_router(user_join.router)
+
 
 
 @dp.message(Command("start"))
@@ -31,4 +31,12 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Register handlers
+    dp.include_router(user_join.router)
+    dp.include_router(admin.router)
+
+    # Start the bot
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        pass
