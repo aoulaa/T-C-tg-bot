@@ -3,6 +3,10 @@ version: '3.8'
 services:
   bot:
     build: .
+    container_name: t-c-tg-bot_bot
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     env_file:
       - .env
     ports:
