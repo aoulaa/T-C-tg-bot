@@ -26,12 +26,20 @@ async def on_startup(bot: Bot):
     logging.info("Initializing database...")
     await init_db()
     logging.info(f"Setting webhook to {WEBHOOK_URL}")
-    await bot.set_webhook(WEBHOOK_URL)
+    try:
+        await bot.set_webhook(WEBHOOK_URL)
+        logging.info("Webhook set successfully")
+    except Exception as e:
+        # Do not crash the app if Telegram can't set the webhook (e.g., DNS/cert issues)
+        logging.exception(f"Failed to set webhook to {WEBHOOK_URL}: {e}")
 
 
 async def on_shutdown(bot: Bot):
     logging.info("Deleting webhook...")
-    await bot.delete_webhook()
+    try:
+        await bot.delete_webhook()
+    except Exception as e:
+        logging.exception(f"Failed to delete webhook: {e}")
 
 
 def main():
@@ -51,6 +59,12 @@ def main():
         bot=bot,
     )
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+
+    # Health endpoint for quick checks
+    async def healthz(_request: web.Request) -> web.Response:
+        return web.Response(text="ok")
+    app.router.add_get("/healthz", healthz)
+
     setup_application(app, dp, bot=bot)
     web.run_app(app, host=WEBHOOK_HOST, port=WEBHOOK_PORT)
 
