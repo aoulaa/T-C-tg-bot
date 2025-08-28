@@ -5,7 +5,7 @@ from aiogram.filters.command import Command
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 
-from config import BOT_TOKEN, WEBHOOK_URL, WEBHOOK_PATH, WEBHOOK_HOST, WEBHOOK_PORT
+from config import BOT_TOKEN, WEBHOOK_URL, WEBHOOK_PATH, WEBHOOK_HOST, WEBHOOK_PORT, BOT_OWNER_ID
 from db.database import init_db
 from handlers import user_join, admin
 
@@ -32,6 +32,32 @@ async def on_startup(bot: Bot):
     except Exception as e:
         # Do not crash the app if Telegram can't set the webhook (e.g., DNS/cert issues)
         logging.exception(f"Failed to set webhook to {WEBHOOK_URL}: {e}")
+
+    # Register bot commands so they appear on '/'
+    try:
+        # Default (applies everywhere unless a more specific scope overrides)
+        await bot.set_my_commands([
+            types.BotCommand(command="start", description="Start the bot"),
+        ], scope=types.BotCommandScopeDefault())
+
+        # All group chats (admins can see/use voice-only toggles)
+        await bot.set_my_commands([
+            types.BotCommand(command="start", description="Start the bot"),
+            types.BotCommand(command="voiceonly_on", description="Enable voice-only mode (admin)"),
+            types.BotCommand(command="voiceonly_off", description="Disable voice-only mode (admin)"),
+        ], scope=types.BotCommandScopeAllGroupChats())
+
+        # Bot owner's private chat: include owner-only commands
+        owner_chat_id = int(BOT_OWNER_ID)
+        await bot.set_my_commands([
+            types.BotCommand(command="start", description="Start the bot"),
+            types.BotCommand(command="export_users", description="Owner: export users CSV"),
+            types.BotCommand(command="show_groups", description="Owner: list group settings"),
+        ], scope=types.BotCommandScopeChat(chat_id=owner_chat_id))
+
+        logging.info("Bot commands registered (scoped)")
+    except Exception as e:
+        logging.exception(f"Failed to set bot commands: {e}")
 
 
 async def on_shutdown(bot: Bot):
